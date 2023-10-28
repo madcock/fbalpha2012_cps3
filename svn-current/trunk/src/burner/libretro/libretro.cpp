@@ -92,7 +92,11 @@ static unsigned g_rom_count;
 static uint32_t *g_fba_frame;
 static int16_t *g_audio_buf;
 static INT32 nAudSegLen = 0;
+#if !defined(SF2000)
 static INT32 g_audio_samplerate = 48000;
+#else
+static INT32 g_audio_samplerate = 11025;
+#endif
 UINT32 nFrameskip = 1;
 
 // libretro globals
@@ -820,7 +824,11 @@ static void check_variables(void)
       else if (strcmp(var.value, "11025") == 0)
          g_audio_samplerate = 11025;
       else
+#if !defined(SF2000)
          g_audio_samplerate = 48000;
+#else
+         g_audio_samplerate = 11025;
+#endif
    }
 }
 
@@ -985,7 +993,11 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
    if (game_aspect_x != 0 && game_aspect_y != 0 && !core_aspect_par)
       geom.aspect_ratio = (float)game_aspect_x / (float)game_aspect_y;
 
+#if !defined(SF2000)
    struct retro_system_timing timing = { (nBurnFPS / 100.0), (nBurnFPS / 100.0) * nAudSegLen };
+#else
+   struct retro_system_timing timing = { (nBurnFPS / 100.0), 11025 };
+#endif
 
    info->geometry = geom;
    info->timing   = timing;
@@ -1086,8 +1098,12 @@ static void init_audio_buffer(INT32 sample_rate, INT32 fps)
 	// [issue #206]
 	// For games where sample_rate/1000 > fps/100
 	// we don't change nBurnSoundRate, but we adjust some length
+#if !defined(SF2000)
 	if ((sample_rate / 1000) > (fps / 100))
 		sample_rate = fps * 10;
+#else
+	sample_rate = 11025;
+#endif
 	nAudSegLen = (sample_rate * 100 + (fps >> 1)) / fps;
 	if (g_audio_buf)
 		free(g_audio_buf);
